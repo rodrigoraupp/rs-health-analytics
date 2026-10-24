@@ -190,4 +190,3 @@ dependencies:
       - tzlocal==5.4.4
       - unidecode==1.4.0
       - urllib3==2.7.0
-prefix: /home/rodrigolaforet/miniconda3/envs/projeto_sih
