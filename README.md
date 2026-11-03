@@ -6,18 +6,24 @@ Este projeto analisa os dados de ocupação hospitalar do estado do Rio Grande d
 
 ## Arquitetura e Desenvolvimento
 
-### 1. Ingestão e Estruturação de Dados
-- Extração automatizada de arquivos dos servidores governamentais para armazenamento local via script (`/src/ingestao.py`).
-- Consumo dos dados de internações hospitalares do Rio Grande do Sul (Janeiro de 2024 a Junho de 2026) utilizando o [Pacote PySUS](https://pysus.readthedocs.io/en/latest/#).
-- Integração da base demográfica de municípios e UFs brasileiras consumida via [API de Localidades do IBGE](https://servicodados.ibge.gov.br/api/docs/localidades#api-Municipios-municipiosGet).
-- Processamento e estruturação dos dicionários de metadados extraídos do arquivo `TAB_SIH.zip` (servidor FTP do DATASUS), formatados para cruzar com as colunas de interesse.
+O projeto adota os princípios da **Arquitetura em Medalhão** (Bronze, Silver e Gold) para garantir modularidade, reprodutibilidade e gestão eficiente de memória no processamento dos microdados de saúde pública:
 
-### 2. Data Quality e Análise Exploratória (EDA)
-- **Quality Check (DuckDB & Pandas):** Execução de testes de conformidade, tipagem de colunas e identificação de valores nulos ocultos nos microdados do SIH/SUS.
-- **Sumarização Categórica:** Mapeamento dinâmico de especialidades e demografia através do cruzamento entre os arquivos parquet legados e as descrições da API.
-- **Análise de Migração Hospitalar:** Avaliação do impacto de pacientes externos na rede de saúde, identificando as Cidades Polo do Rio Grande do Sul que mais recebem migrantes (2024-2026).
-- **Mapa de Calor (Heatmap) de Pelotas:** Modelagem da matriz Origem-Destino no Seaborn para monitorar a evolução do fluxo de migração de pacientes da região sul em direção ao polo de Pelotas.
+### 1. Camada Bronze — Ingestão e Dados Brutos
+- **Extração Automatizada:** Download e organização local de arquivos via script modular (`/src/ingestao.py`) e notebook dedicado (`notebooks/99_extraction.ipynb`).
+- **Fontes Integradas:**
+  - Microdados de internações hospitalares do Rio Grande do Sul (Janeiro/2024 a Julho/2026) via [PySUS](https://pysus.readthedocs.io/en/latest/#).
+  - Malha demográfica e códigos dos municípios via [API de Localidades do IBGE](https://servicodados.ibge.gov.br/api/docs/localidades#api-Municipios-municipiosGet).
+  - Metadados e dicionários legados de conversão (`.CNV`) extraídos do arquivo `TAB_SIH.zip` via FTP do DATASUS.
 
+### 2. Camada Silver — Data Quality e Sanitização (`notebooks/01_data_quality.ipynb`)
+- **Auditoria & Quality Check:** Sanitização de strings para remoção de espaços em branco ocultos (`TRIM`), tratamento de nulos (`NULLIF`) e conversão segura de valores decimais monetários (`TRY_CAST`).
+- **Explosão de Dimensão (ETL de CIDs):** Parser customizado em Python para desmembrar faixas alfanuméricas legadas em chaves individuais, viabilizando cruzamentos relacionais de alta performance no DuckDB.
+- **Gestão de Memória RAM:** Implementação da classe `MonitorMemoria` para rastreamento de DataFrames Pandas e disparo forçado do Garbage Collector (`gc.collect()`).
+
+### 3. Camada Gold — Análise Exploratória e Insights (`notebooks/02_eda.ipynb`)
+- **Migração Hospitalar Estadual:** Mapeamento e ranqueamento temporal das Cidades Polo do Rio Grande do Sul com maior absorção de pacientes externos (2024–2026).
+- **Divergência Volume vs. Custo:** Análise comparativa que isola o impacto do Ticket Médio por internação em municípios estratégicos como Pelotas e Caxias do Sul.
+- **Matriz Origem-Destino (Pelotas):** Visualização da evolução do fluxo migratório regional direcionado ao polo hospitalar de Pelotas através de mapas de calor (*Heatmaps*) no Seaborn.
 
 ## Estrutura do Repo
 
@@ -29,10 +35,11 @@ O repositório está organizado da seguinte maneira:
 │   └── adr
 │       └── 0001-fase-1-ingestao.md
 ├── notebooks
-│   ├── 01_eda.ipynb
-│   └── 99_extraction.ipynb
+│   ├── 01_data_quality.ipynb   # silver
+│   ├── 02_eda.ipynb            # gold
+│   └── 99_extraction.ipynb     # testes de conexão
 ├── src
-│   └── ingestao.py
+│   └── ingestao.py             # bronze
 ├── environment.yml
 ├── README.md
 └── setup.sh
