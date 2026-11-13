@@ -1,3 +1,9 @@
 data/
 misc.txt
 dicio_var.txt
+
+# caches do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
