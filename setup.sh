@@ -12,7 +12,7 @@ echo "Ativando ambiente virtual 'projeto_sih'..."
 conda activate projeto_sih
 
 # injetando variável ambiente dinamicamente
-export PYSUS_CACHEPATH="$(pwd)/data/raw/pysus_cache"
+export PYSUS_CACHEPATH="$(pwd)/data/bronze/pysus_cache"
 echo "Variável PYSUS_CACHEPATH injetada: $PYSUS_CACHEPATH"
 
 echo "Rodando pipeline de ingestão e tratamento..."
